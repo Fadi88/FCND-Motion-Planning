@@ -5,7 +5,7 @@ from enum import Enum, auto
 
 import numpy as np
 
-from planning_utils import a_star, heuristic, create_grid
+from planning_utils import a_star, heuristic, create_grid,prune_path
 from udacidrone import Drone
 from udacidrone.connection import MavlinkConnection
 from udacidrone.messaging import MsgID
@@ -116,7 +116,7 @@ class MotionPlanning(Drone):
     def plan_path(self):
         self.flight_state = States.PLANNING
         print("Searching for a path ...")
-        TARGET_ALTITUDE = 5
+        TARGET_ALTITUDE = 10
         SAFETY_DISTANCE = 5
 
         self.target_position[2] = TARGET_ALTITUDE
@@ -133,8 +133,8 @@ class MotionPlanning(Drone):
         pass
 
         # TODO: convert to current local position using global_to_local()
-        self.local_position = global_to_local(self.global_position,self.global_home)
-        
+        local_position = global_to_local(self.global_position, self.global_home)
+
         print(
             "global home {0}, position {1}, local position {2}".format(
                 self.global_home, self.global_position, self.local_position
@@ -153,13 +153,19 @@ class MotionPlanning(Drone):
         # Set goal as some arbitrary position on the grid
         grid_goal = (-north_offset + 10, -east_offset + 10)
         # TODO: adapt to set goal as latitude / longitude position and convert
+        import random
+
+        n_rows, n_cols = grid.shape
+        grid_goal = (random.randint(0, n_rows - 1), random.randint(0, n_cols - 1))
 
         # Run A* to find a path from start to goal
         # TODO: add diagonal motions with a cost of sqrt(2) to your A* implementation
+        ## done in planning_utils valid_actions function
         # or move to a different search space such as a graph (not done here)
         print("Local Start and Goal: ", grid_start, grid_goal)
         path, _ = a_star(grid, heuristic, grid_start, grid_goal)
         # TODO: prune path to minimize number of waypoints
+        path = prune_path(path)
         # TODO (if you're feeling ambitious): Try a different approach altogether!
 
         # Convert path to waypoints
