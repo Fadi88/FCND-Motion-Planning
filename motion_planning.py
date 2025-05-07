@@ -27,7 +27,7 @@ class MotionPlanning(Drone):
     def __init__(self, connection):
         super().__init__(connection)
 
-        self.target_position = np.array([0.0, 0.0, -10.0])
+        self.target_position = np.array([0.0, 0.0, 0.0])
         self.waypoints = []
         self.in_mission = True
         self.check_state = {}
@@ -160,7 +160,6 @@ class MotionPlanning(Drone):
 
         # Run A* to find a path from start to goal
         # TODO: add diagonal motions with a cost of sqrt(2) to your A* implementation
-        ## done in planning_utils valid_actions function
         # or move to a different search space such as a graph (not done here)
         print("Local Start and Goal: ", grid_start, grid_goal)
         path, _ = a_star(grid, heuristic, grid_start, grid_goal)
