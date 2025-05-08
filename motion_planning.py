@@ -5,13 +5,14 @@ from enum import Enum, auto
 
 import numpy as np
 
-from planning_utils import a_star, heuristic, create_grid,prune_path
+from planning_utils import *
 from udacidrone import Drone
 from udacidrone.connection import MavlinkConnection
 from udacidrone.messaging import MsgID
 from udacidrone.frame_utils import global_to_local
 
-
+# need to update scipy on ubuntu 24 : pip install --upgrade scipy
+# pip install bresenham
 class States(Enum):
     MANUAL = auto()
     ARMING = auto()
@@ -136,8 +137,8 @@ class MotionPlanning(Drone):
         local_position = global_to_local(self.global_position, self.global_home)
 
         print(
-            "global home {0}, position {1}, local position {2}".format(
-                self.global_home, self.global_position, self.local_position
+            "global home {0}, position {1}, local position from obj {2}, local postion from utm{3}".format(
+                self.global_home, self.global_position, self.local_position, local_position
             )
         )
         # Read in obstacle map
@@ -151,12 +152,16 @@ class MotionPlanning(Drone):
         # TODO: convert start position to current position rather than map center
 
         # Set goal as some arbitrary position on the grid
-        grid_goal = (-north_offset + 10, -east_offset + 10)
+        # grid_goal = (-north_offset + 10, -east_offset + 10)
         # TODO: adapt to set goal as latitude / longitude position and convert
         import random
 
         n_rows, n_cols = grid.shape
-        grid_goal = (random.randint(0, n_rows - 1), random.randint(0, n_cols - 1))
+
+        gx = random.randint(0, n_rows - 1)
+        gy = random.randint(0, n_cols - 1)
+
+        grid_goal = (gx, gy)
 
         # Run A* to find a path from start to goal
         # TODO: add diagonal motions with a cost of sqrt(2) to your A* implementation
