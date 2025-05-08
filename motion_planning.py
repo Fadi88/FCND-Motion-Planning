@@ -1,15 +1,19 @@
+# pylint: disable=C0115,E0401,C0116,C0301,C0209,W0511,W0212,C0103,C0114,W0401,W0614
+
 import argparse
 import time
-import msgpack
+import random
 from enum import Enum, auto
 
+import msgpack # type: ignore
 import numpy as np
+from udacidrone import Drone # type: ignore
+from udacidrone.connection import MavlinkConnection # type: ignore
+from udacidrone.frame_utils import global_to_local # type: ignore
+from udacidrone.messaging import MsgID # type: ignore
 
 from planning_utils import *
-from udacidrone import Drone
-from udacidrone.connection import MavlinkConnection
-from udacidrone.messaging import MsgID
-from udacidrone.frame_utils import global_to_local
+
 
 # need to update scipy on ubuntu 24 : pip install --upgrade scipy
 # pip install bresenham
@@ -117,7 +121,7 @@ class MotionPlanning(Drone):
     def plan_path(self):
         self.flight_state = States.PLANNING
         print("Searching for a path ...")
-        TARGET_ALTITUDE = 10
+        TARGET_ALTITUDE = 5
         SAFETY_DISTANCE = 5
 
         self.target_position[2] = TARGET_ALTITUDE
@@ -131,7 +135,6 @@ class MotionPlanning(Drone):
         self.set_home_position(lon0, lat0, 0)
 
         # TODO: retrieve current global position
-        pass
 
         # TODO: convert to current local position using global_to_local()
         local_position = global_to_local(self.global_position, self.global_home)
@@ -154,7 +157,6 @@ class MotionPlanning(Drone):
         # Set goal as some arbitrary position on the grid
         # grid_goal = (-north_offset + 10, -east_offset + 10)
         # TODO: adapt to set goal as latitude / longitude position and convert
-        import random
 
         n_rows, n_cols = grid.shape
 
@@ -167,11 +169,19 @@ class MotionPlanning(Drone):
         # TODO: add diagonal motions with a cost of sqrt(2) to your A* implementation
         # or move to a different search space such as a graph (not done here)
         print("Local Start and Goal: ", grid_start, grid_goal)
-        path, _ = a_star(grid, heuristic, grid_start, grid_goal)
+        #path, _ = a_star(grid, heuristic, grid_start, grid_goal)
         # TODO: prune path to minimize number of waypoints
-        path = prune_path(path)
+        #path = prune_path(path)
+        #print(path)
         # TODO (if you're feeling ambitious): Try a different approach altogether!
+        g = create_graph(data, TARGET_ALTITUDE, SAFETY_DISTANCE)
 
+        c_start = closest_point(g, grid_start)
+        c_goal = closest_point(g, grid_goal)
+
+        path, _ = a_star_graph(g, heuristic_graph, c_start, c_goal)
+        print(len(path))
+        print(path)
         # Convert path to waypoints
         waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in path]
         # Set self.waypoints

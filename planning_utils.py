@@ -1,10 +1,12 @@
+# pylint: disable=C0115,E0401,C0116,C0301,C0209,W0511,W0212,C0103,W0621,E0611,C0114
+
 from enum import Enum
 from queue import PriorityQueue
-import numpy as np
-from queue import PriorityQueue
-from scipy.spatial import Voronoi
-from bresenham import bresenham
+
 import networkx as nx
+import numpy as np
+from bresenham import bresenham  # type: ignore
+from scipy.spatial import Voronoi
 
 
 def create_grid(data, drone_altitude, safety_distance):
@@ -190,6 +192,7 @@ def heuristic_graph(n1, n2):
 def a_star_graph(graph, h, start, goal):
     """Modified A* to work with NetworkX graphs."""
 
+    print("finding A* path inside a graph")
     path = []
     path_cost = 0
     queue = PriorityQueue()
@@ -259,6 +262,7 @@ def create_graph(data, drone_altitude, safety_distance):
     along with Voronoi graph edges given obstacle data and the
     drone's altitude.
     """
+    print("creating graph from data")
     # minimum and maximum north coordinates
     north_min = np.floor(np.min(data[:, 0] - data[:, 3]))
     north_max = np.ceil(np.max(data[:, 0] + data[:, 3]))
@@ -296,7 +300,6 @@ def create_graph(data, drone_altitude, safety_distance):
     graph = Voronoi(points)
 
     # TODO: check each edge from graph.ridge_vertices for collision
-    edges = []
     g = nx.Graph()
     for v in graph.ridge_vertices:
         p1 = graph.vertices[v[0]]
