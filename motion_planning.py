@@ -7,6 +7,7 @@ from enum import Enum, auto
 
 import msgpack # type: ignore
 import numpy as np
+import networkx as nx
 from udacidrone import Drone # type: ignore
 from udacidrone.connection import MavlinkConnection # type: ignore
 from udacidrone.frame_utils import global_to_local # type: ignore
@@ -121,7 +122,7 @@ class MotionPlanning(Drone):
     def plan_path(self):
         self.flight_state = States.PLANNING
         print("Searching for a path ...")
-        TARGET_ALTITUDE = 5
+        TARGET_ALTITUDE = 10
         SAFETY_DISTANCE = 5
 
         self.target_position[2] = TARGET_ALTITUDE
@@ -174,7 +175,13 @@ class MotionPlanning(Drone):
         #path = prune_path(path)
         #print(path)
         # TODO (if you're feeling ambitious): Try a different approach altogether!
-        g = create_graph(data, TARGET_ALTITUDE, SAFETY_DISTANCE)
+        #g = create_graph(data, TARGET_ALTITUDE, SAFETY_DISTANCE)
+
+        graph_data = np.loadtxt("graph.csv", delimiter=",", dtype="Float64", skiprows=2)
+
+        g = nx.Graph()
+        for e in graph_data:
+            g.add_edge((e[0],e[1]) , (e[2],e[3]), weight = e[4])
 
         c_start = closest_point(g, grid_start)
         c_goal = closest_point(g, grid_goal)
@@ -183,7 +190,7 @@ class MotionPlanning(Drone):
         print(len(path))
         print(path)
         # Convert path to waypoints
-        waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in path]
+        waypoints = [[int(p[0] + north_offset), int(p[1] + east_offset), TARGET_ALTITUDE, 0] for p in path]
         # Set self.waypoints
         self.waypoints = waypoints
         # TODO: send waypoints to sim (this is just for visualization of waypoints)
